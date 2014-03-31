@@ -7,11 +7,14 @@ matrix:
       before_install:
         - pip install pep8
         - pip install pyflakes
+      install:
+        - cd distarray
       script:
-        PEP8FILES= distarray/__init__.py distarray/decorators.py
+        PEP8FILES= __init__.py decorators.py
         PYFLAKESFILES=
         - pep8 ${PEP8FILES}
         - pyflakes ${PYFLAKESFILES}
+
 before_install:
     - sudo apt-get update
     - sudo apt-get install libopenmpi-dev
