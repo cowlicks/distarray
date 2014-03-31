@@ -6,14 +6,15 @@ matrix:
     - python: 3.3
     - python: 2.7
     - python: 2.7
+      env:
+        PEP8FILES= '__init__.py decorators.py'
+        PYFLAKESFILES=
       before_install:
         - pip install pep8
         - pip install pyflakes
       install:
         # no need to install distarray
       before_script:
-        PEP8FILES= '__init__.py decorators.py'
-        PYFLAKESFILES=
       script:
         - cd distarray
         - pep8 ${PEP8FILES}
