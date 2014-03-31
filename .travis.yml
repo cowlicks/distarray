@@ -8,12 +8,16 @@ matrix:
         - pip install pep8
         - pip install pyflakes
       install:
-        - cd distarray
-      script:
+        # no need to install distarray
+      before_script:
         PEP8FILES= __init__.py decorators.py
         PYFLAKESFILES=
+      script:
+        - cd distarray
         - pep8 ${PEP8FILES}
         - pyflakes ${PYFLAKESFILES}
+      after_script:
+      after_success:
 
 before_install:
     - sudo apt-get update
