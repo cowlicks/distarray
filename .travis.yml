@@ -12,7 +12,7 @@ matrix:
       install:
         # no need to install distarray
       before_script:
-        PEP8FILES= __init__.py decorators.py
+        PEP8FILES= '__init__.py decorators.py'
         PYFLAKESFILES=
       script:
         - cd distarray
