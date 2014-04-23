@@ -56,6 +56,3 @@ class TestClientMap(unittest.TestCase):
                 rank = (r % nprocs_per_dim) * nprocs_per_dim + (c % nprocs_per_dim)
                 actual = cm.owning_ranks((r,c))
                 self.assertSequenceEqual(actual, [rank])
-
-
-
