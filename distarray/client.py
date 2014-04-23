@@ -129,16 +129,37 @@ class DistArray(object):
             (self.shape, self.context.targets)
         return s
 
+    def _normalize_index(self, index):
+        """Check index is within bounds. Coerce to tuple. And positivify."""
+        # coerce to tuple
+        if isinstance(index, int) or isinstance(index, slice):
+            index = (index,)
+        elif isinstance(index, list):
+            index = tuple(index)
+
+        # positivify
+        out = []
+        for dim, i in enumerate(index):
+            if i >= 0:
+                out.append(i)
+            else:
+                out.append(self.shape[dim] + i)
+        index = tuple(out)
+
+        # Check index is within bounds
+        for dim, i in enumerate(index):
+            if (i >= self.shape[dim]) or (i < 0):
+                raise IndexError("index %s out of bound of DistArray with shap"
+                                 "e %s" % (index, self.shape))
+        return index
+
     def __getitem__(self, index):
         #TODO: FIXME: major performance improvements possible here,
         # especially for special cases like `index == slice(None)`.
         # This would dramatically improve tondarray's performance.
+        index = self._normalize_index(index)
 
-        if isinstance(index, int) or isinstance(index, slice):
-            tuple_index = (index,)
-            return self.__getitem__(tuple_index)
-
-        elif isinstance(index, tuple):
+        if isinstance(index, tuple):
             targets = self.mdmap.owning_targets(index)
             result_key = self.context._generate_key()
             fmt = '%s = %s.checked_getitem(%s)'
@@ -158,12 +179,9 @@ class DistArray(object):
         # ndarray, since for block and cyclic, we can generate slices of
         # `value` and assign to local arrays. This would dramatically
         # improve the fromndarray method's performance.
+        index = self._normalize_index(index)
 
-        if isinstance(index, int) or isinstance(index, slice):
-            tuple_index = (index,)
-            return self.__setitem__(tuple_index, value)
-
-        elif isinstance(index, tuple):
+        if isinstance(index, tuple):
             targets = self.mdmap.owning_targets(index)
             result_key = self.context._generate_key()
             fmt = '%s = %s.checked_setitem(%s, %s)'
