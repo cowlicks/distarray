@@ -61,7 +61,7 @@ def get_local_keys(view, prefix):
     for target, keys in keys_from_target.items():
         for key in keys:
             targets_from_key.setdefault(key, []).append(target)
-    
+
     return targets_from_key
 
 def clear(view):

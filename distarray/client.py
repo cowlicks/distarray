@@ -157,10 +157,19 @@ class DistArray(object):
         #TODO: FIXME: major performance improvements possible here,
         # especially for special cases like `index == slice(None)`.
         # This would dramatically improve tondarray's performance.
+        def getit(arr_name, index):
+            context = globals()[self.context.context_key]
+            return localarray.global_index[index]
+
         index = self._normalize_index(index)
 
         if isinstance(index, tuple):
             targets = self.mdmap.owning_targets(index)
+            if len(targets) == 1:
+                # make subview
+                subview = self.context.view.client[targets]
+                result = subview.apply_sync(getit, self.key, index)[0]
+                return result
             result_key = self.context._generate_key()
             fmt = '%s = %s.checked_getitem(%s)'
             statement = fmt % (result_key, self.key, index)
