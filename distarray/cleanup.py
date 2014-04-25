@@ -11,7 +11,7 @@ from distarray.ipython_utils import IPythonClient
 
 def engine_cleanup(module_name, prefix):
     """ Remove variables with ``prefix`` prefix from the namespace of the
-    module with ``module_name``. 
+    module with ``module_name``.
     """
     mod = __import__(module_name)
     ns = mod.__dict__
