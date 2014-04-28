@@ -158,8 +158,8 @@ class DistArray(object):
         # especially for special cases like `index == slice(None)`.
         # This would dramatically improve tondarray's performance.
         def getit(arr_name, index):
-            context = globals()[self.context.context_key]
-            return localarray.global_index[index]
+            arr = eval(arr_name)
+            return arr.global_index[index]
 
         index = self._normalize_index(index)
 
@@ -170,6 +170,7 @@ class DistArray(object):
                 subview = self.context.view.client[targets]
                 result = subview.apply_sync(getit, self.key, index)[0]
                 return result
+
             result_key = self.context._generate_key()
             fmt = '%s = %s.checked_getitem(%s)'
             statement = fmt % (result_key, self.key, index)
