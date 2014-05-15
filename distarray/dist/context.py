@@ -13,6 +13,7 @@ from __future__ import absolute_import
 
 import collections
 import atexit
+import types
 
 import numpy
 
@@ -538,7 +539,7 @@ class Context(object):
             the name of the result on all the engines.
         """
 
-        def func_wrapper(func, result_name, args, kwargs):
+        def func_wrapper(func, result_name, args, kwargs, context_key):
             """
             Function which calls the applied function after grabbing all the
             arguments on the engines that are passed in as names of the form
@@ -546,6 +547,16 @@ class Context(object):
             """
             main = __import__('__main__')
             prefix = main.distarray.utils.DISTARRAY_BASE_NAME
+
+            # Modify the function to add a context_key to its namespace
+            func_code = func.__code__
+            new_globals = dict({'context_key': context_key},
+                               **func.__globals__)
+            func_name = func.__name__
+            func_defargs = func.__defaults__
+            func_closure = func.__closure__
+            func = types.FunctionType(func_code, new_globals, func_name,
+                                      func_defargs, func_closure)
 
             # convert args
             args = list(args)
@@ -570,7 +581,7 @@ class Context(object):
         result_name = None if not return_proxy else uid()
         args = () if args is None else args
         kwargs = {} if kwargs is None else kwargs
-        wrapped_args = (func, result_name, args, kwargs)
+        wrapped_args = (func, result_name, args, kwargs, self.context_key)
 
         targets = self.targets if targets is None else targets
 
