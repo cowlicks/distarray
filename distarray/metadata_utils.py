@@ -241,3 +241,19 @@ def normalize_reduction_axes(axes, ndim):
     else:
         axes = tuple(positivify(a, ndim) for a in axes)
     return axes
+
+
+def tuple_intersection(t1, t2):
+    """Compute intersection of two (start, stop) tuples.
+
+    Parameters
+    ----------
+    t1, t2 : 2-tuples
+
+    Returns
+    -------
+    2-tuple or None
+    """
+    stop = min(t1[1], t2[1])
+    start = max(t1[0], t2[0])
+    return (start, stop) if stop - start > 0 else None
