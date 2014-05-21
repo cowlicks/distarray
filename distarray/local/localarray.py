@@ -41,9 +41,7 @@ def _sanitize_indices(indices):
 
 
 class GlobalIndex(object):
-    """Object which provides access to global indexing on
-    LocalArrays.
-    """
+    """Object which provides access to global indexing on LocalArrays."""
     def __init__(self, distribution, ndarray):
         self.distribution = distribution
         self.ndarray = ndarray
