@@ -12,7 +12,6 @@ from __future__ import print_function, division
 # ---------------------------------------------------------------------------
 import math
 from collections import Mapping
-from numbers import Integral
 
 import numpy as np
 
@@ -20,30 +19,11 @@ from distarray.externals import six
 from distarray.externals.six.moves import zip
 
 import distarray.local
+from distarray.metadata_utils import sanitize_indices
 from distarray.local.mpiutils import MPI
 from distarray.utils import _raise_nie
 from distarray.local import format, maps
 from distarray.local.error import InvalidDimensionError, IncompatibleArrayError
-
-
-# Register numpy integer types with numbers.Integral ABC.
-Integral.register(np.signedinteger)
-Integral.register(np.unsignedinteger)
-
-
-def _sanitize_indices(indices):
-    """Tuple-ize and classify `indices`."""
-    if isinstance(indices, Integral):
-        return ('value', (indices,))
-    elif isinstance(indices, slice):
-        return ('view', (indices,))
-    elif all(isinstance(i, Integral) for i in indices):
-        return ('value', indices)
-    elif all(isinstance(i, Integral) or isinstance(i, slice) for i in indices):
-        return ('view', indices)
-    else:
-        raise TypeError("Index must be an int, a slice, or a sequence of "
-                        "ints and slices")
 
 
 class GlobalIndex(object):
@@ -72,7 +52,7 @@ class GlobalIndex(object):
         return self.distribution.global_from_local(*local_ind)
 
     def __getitem__(self, global_inds):
-        return_type, global_inds = _sanitize_indices(global_inds)
+        return_type, global_inds = sanitize_indices(global_inds)
         try:
             local_inds = self.global_to_local(*global_inds)
         except KeyError as err:
@@ -88,7 +68,7 @@ class GlobalIndex(object):
             assert False  # impossible is nothing
 
     def __setitem__(self, global_inds, value):
-        _, global_inds = _sanitize_indices(global_inds)
+        _, global_inds = sanitize_indices(global_inds)
         try:
             local_inds = self.global_to_local(*global_inds)
             self.ndarray[local_inds] = value
@@ -413,7 +393,7 @@ class LocalArray(object):
 
     def __getitem__(self, index):
         """Get a local item."""
-        return_type, index = _sanitize_indices(index)
+        return_type, index = sanitize_indices(index)
         if return_type == 'value':
             return self.ndarray[index]
         elif return_type == 'view':
@@ -917,7 +897,7 @@ def local_reduction(reducer, out_comm, larr, ddpr, dtype, axes):
 
     Parameters
     ----------
-    reducer : callable 
+    reducer : callable
         Performs the core reduction operation.
 
     out_comm: MPI Comm instance.
@@ -966,19 +946,19 @@ def _basic_reducer(reduce_comm, op, func, args, kwargs, out):
 def min_reducer(reduce_comm, larr, out, axes, dtype):
     """ Core reduction function for min."""
     return _basic_reducer(reduce_comm, MPI.MIN,
-                          larr.ndarray.min, 
+                          larr.ndarray.min,
                           (), {'axis':axes}, out)
 
 def max_reducer(reduce_comm, larr, out, axes, dtype):
     """ Core reduction function for max."""
     return _basic_reducer(reduce_comm, MPI.MAX,
-                          larr.ndarray.max, 
+                          larr.ndarray.max,
                           (), {'axis':axes}, out)
 
 def sum_reducer(reduce_comm, larr, out, axes, dtype):
     """ Core reduction function for sum."""
     return _basic_reducer(reduce_comm, MPI.SUM,
-                          larr.ndarray.sum, 
+                          larr.ndarray.sum,
                           (), {'axis':axes, 'dtype':dtype}, out)
 
 def mean_reducer(reduce_comm, larr, out, axes, dtype):
