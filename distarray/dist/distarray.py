@@ -91,7 +91,8 @@ class DistArray(object):
 
         # has context, get dist and dtype
         elif (distribution is None) and (dtype is None):
-            res = context.apply(get_dim_datas_and_dtype, args=(key,))
+            res = context.apply(get_dim_datas_and_dtype, args=(key,),
+                                targets=targets)
             dim_datas = [i[0] for i in res]
             dtypes = [i[1] for i in res]
             da._dtype = dtypes[0]
@@ -102,7 +103,8 @@ class DistArray(object):
         # has context and dtype, get dist
         elif (distribution is None) and (dtype is not None):
             da._dtype = dtype
-            dim_datas = context.apply(getattr, args=(key, 'dim_data'))
+            dim_datas = context.apply(getattr, args=(key, 'dim_data'),
+                                      targets=targets)
             da.distribution = Distribution.from_dim_data_per_rank(context,
                                                                   dim_datas,
                                                                   targets)
