@@ -68,7 +68,7 @@ class TestClientMap(unittest.TestCase):
 
         self.assertTrue(cm0.is_compatible(cm1))
         self.assertTrue(cm1.is_compatible(cm0))
-        
+
         nr -= 1; nc -= 1; nd -= 1
 
         cm2 = maps.Distribution.from_shape(self.ctx, (nr, nc, nd),
@@ -76,6 +76,7 @@ class TestClientMap(unittest.TestCase):
 
         self.assertFalse(cm1.is_compatible(cm2))
         self.assertFalse(cm2.is_compatible(cm1))
+
 
     def test_reduce(self):
         nr, nc, nd = 10**5, 10**6, 10**4
@@ -109,3 +110,52 @@ class TestClientMap(unittest.TestCase):
         self.assertSequenceEqual(new_dist.shape, ())
         self.assertEqual(new_dist.grid_shape, ())
         self.assertEqual(set(new_dist.targets), set(dist.targets[:1]))
+
+
+class TestFromSlice(unittest.TestCase):
+
+    def setUp(self):
+        self.ctx = Context()
+
+    def tearDown(self):
+        self.ctx.close()
+
+    def test_from_partial_slice_1d(self):
+        d0 = maps.Distribution.from_shape(context=self.ctx, shape=(15,))
+
+        s = (slice(0, 3),)
+        d1 = maps.Distribution.from_slice(distribution=d0, index_tuple=s)
+
+        self.assertEqual(len(d0.maps), len(d1.maps))
+        self.assertSequenceEqual(d1.targets, [0])
+        self.assertSequenceEqual(d1.shape, (3,))
+
+    def test_from_full_slice_1d(self):
+        d0 = maps.Distribution.from_shape(context=self.ctx, shape=(15,))
+
+        s = (slice(None),)
+        d1 = maps.Distribution.from_slice(distribution=d0, index_tuple=s)
+
+        self.assertEqual(len(d0.maps), len(d1.maps))
+        self.assertSequenceEqual(d1.targets, d0.targets)
+
+    def test_from_full_slice_2d(self):
+        d0 = maps.Distribution.from_shape(context=self.ctx, shape=(15, 20))
+
+        s = (slice(None), slice(None))
+        d1 = maps.Distribution.from_slice(distribution=d0, index_tuple=s)
+
+        self.assertEqual(len(d0.maps), len(d1.maps))
+        for m0, m1 in zip(d0.maps, d1.maps):
+            self.assertSequenceEqual(m0.bounds, m1.bounds)
+        self.assertSequenceEqual(d1.targets, d0.targets)
+
+    def test_from_partial_slice_2d(self):
+        d0 = maps.Distribution.from_shape(context=self.ctx, shape=(15, 20))
+
+        s = (slice(3, 7), 4)
+        d1 = maps.Distribution.from_slice(distribution=d0, index_tuple=s)
+
+        self.assertEqual(len(d0.maps), len(d1.maps))
+        for m, expected in zip(d1.maps, ([(0, 1), (1, 4)], [(0, 1)])):
+            self.assertSequenceEqual(m.bounds, expected)
