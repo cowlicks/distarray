@@ -123,7 +123,7 @@ class TestFromSlice(unittest.TestCase):
         d0 = maps.Distribution.from_shape(context=self.ctx, shape=(15,))
 
         s = (slice(0, 3),)
-        d1 = d0.slice(index_tuple=s)
+        d1 = d0.slice(s)
 
         self.assertEqual(len(d0.maps), len(d1.maps))
         self.assertSequenceEqual(d1.targets, [0])
@@ -133,7 +133,7 @@ class TestFromSlice(unittest.TestCase):
         d0 = maps.Distribution.from_shape(context=self.ctx, shape=(15,))
 
         s = (slice(None),)
-        d1 = d0.slice(index_tuple=s)
+        d1 = d0.slice(s)
 
         self.assertEqual(len(d0.maps), len(d1.maps))
         self.assertSequenceEqual(d1.targets, d0.targets)
@@ -142,7 +142,7 @@ class TestFromSlice(unittest.TestCase):
         d0 = maps.Distribution.from_shape(context=self.ctx, shape=(15, 20))
 
         s = (slice(None), slice(None))
-        d1 =d0.slice(index_tuple=s)
+        d1 =d0.slice(s)
 
         self.assertEqual(len(d0.maps), len(d1.maps))
         for m0, m1 in zip(d0.maps, d1.maps):
@@ -153,7 +153,7 @@ class TestFromSlice(unittest.TestCase):
         d0 = maps.Distribution.from_shape(context=self.ctx, shape=(15, 20))
 
         s = (slice(3, 7), 4)
-        d1 = d0.slice(index_tuple=s)
+        d1 = d0.slice(s)
 
         self.assertEqual(len(d0.maps), len(d1.maps))
         for m, expected in zip(d1.maps, ([(0, 1), (1, 4)], [(0, 1)])):
