@@ -67,37 +67,35 @@ class Context(object):
                     self.targets.append(target)
         self.targets = sorted(self.targets)
 
-        # local imports
-        self.view.execute("from functools import reduce; "
-                          "from importlib import import_module; "
-                          "import distarray.local; "
-                          "import distarray.local.mpiutils; "
-                          "import distarray.utils; "
-                          "import distarray.local.proxyize as proxyize; "
-                          "import numpy")
+        # Build up a command string to be executed on the engines to setup
+        # a context.
+        cmd = ""
 
-        self.context_key = self._setup_context_key()
+        # local imports
+        cmd += ("from functools import reduce; "
+                "from importlib import import_module; "
+                "import distarray.local; "
+                "import distarray.local.mpiutils; "
+                "import distarray.utils; "
+                "import distarray.local.proxyize as proxyize; "
+                "import numpy; ")
+
+        # create a module for this context on the engines
+        self.context_key = uid()
+        cmd += ("import types, sys; "
+                "%s = types.ModuleType('%s'); ")
+        cmd %= (self.context_key, self.context_key)
 
         # setup proxyize which is used by context.apply in the rest of the
         # setup.
-        cmd = "proxyize = proxyize.Proxyize('%s')" % (self.context_key,)
-        self.view.execute(cmd)
+        cmd += "proxyize = proxyize.Proxyize('%s'); " % (self.context_key,)
+
+        # run the command
+        self.view.execute(cmd, targets=self.targets)
 
         self._base_comm = self._make_base_comm()
         self._comm_from_targets = {tuple(sorted(self.view.targets)): self._base_comm}  # noqa
         self.comm = self._make_subcomm(self.targets)
-
-    def _setup_context_key(self):
-        """
-        Create a dict on the engines which will hold everything from
-        this context.
-        """
-        context_key = uid()
-        cmd = ("import types, sys;"
-               "%s = types.ModuleType('%s');")
-        cmd %= (context_key, context_key)
-        self._execute(cmd, targets=range(len(self.view)))
-        return context_key
 
     def _make_subcomm(self, new_targets):
 
